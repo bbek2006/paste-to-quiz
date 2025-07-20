@@ -36,18 +36,17 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         const data = await response.json();
-        console.log("Full API response:", data);
+        console.log("✅ Full API response:", data);
 
-        // Extra safety checks for response structure
-        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-          throw new Error("Invalid response format from server");
+        const questions = data.content;
+        if (!questions) {
+          throw new Error("No questions returned from server");
         }
 
-        const questions = data.choices[0].message.content;
         outputDiv.innerHTML = `<pre>${questions}</pre>`;
 
       } catch (error) {
-        console.error("Error:", error);
+        console.error("❌ Error:", error);
         const errorDiv = document.getElementById("quizOutput") || document.body;
         errorDiv.textContent = `Error: ${error.message}`;
       }
