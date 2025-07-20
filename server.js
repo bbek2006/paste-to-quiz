@@ -1,53 +1,65 @@
-// server.js
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import bodyParser from "body-parser";
 import fetch from "node-fetch";
 
-// Load environment variables
 dotenv.config();
-
 const app = express();
 const port = process.env.PORT || 3000;
 const apiKey = process.env.OPENROUTER_API_KEY;
 
 if (!apiKey) {
-  console.error("❌ Missing OpenRouter API Key. Add it in Render's Environment tab.");
+  console.error("❌ Missing OpenRouter API Key");
   process.exit(1);
 }
 
-app.use(cors());
+app.use(cors({
+  origin: ['https://bbek2006.github.io', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}));
+
 app.use(bodyParser.json());
-app.use(express.static("public")); // 📦 serve frontend
+app.use(express.static("public"));
 
 app.post("/generate-mcq", async (req, res) => {
-  const userText = req.body.text;
-
-  const messages = [
-    {
-      role: "system",
-      content: `You are an AI tutor. Read the following lecture content and generate 3 multiple-choice questions.
-Each question must have:
-- 1 question
-- 4 options (a, b, c, d)
-- 1 correct answer labeled clearly.
-Format:
-Q1. Question?
-a) Option 1
-b) Option 2
-c) Option 3
-d) Option 4
-Answer: b`,
-    },
-    {
-      role: "user",
-      content: userText,
-    },
-  ];
-
   try {
-    console.log("📤 Sending request to OpenRouter...");
+    const userText = req.body.text;
+
+    if (!userText) {
+      return res.status(400).json({ error: "Please provide text content" });
+    }
+
+    const messages = [
+      {
+        role: "system",
+        content: `You are an expert quiz generator. Analyze the provided lecture content and generate the MAXIMUM number of high-quality multiple-choice questions that comprehensively cover all key concepts in the text.
+
+        Guidelines:
+        1. Generate as many questions as needed to cover all important aspects
+        2. Each question must test a distinct concept or aspect
+        3. Questions should vary in type (definitions, applications, comparisons, etc.)
+        4. Format each question exactly like this:
+        
+        Q1. [Question text]
+        a) Option 1
+        b) Option 2
+        c) Option 3
+        d) Option 4
+        Answer: [correct letter]
+        
+        [Blank line between questions]
+        
+        5. Continue until all testable content is covered
+        6. If content is limited, generate at least 3 questions`
+      },
+      {
+        role: "user",
+        content: userText,
+      },
+    ];
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -59,35 +71,25 @@ Answer: b`,
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
         messages,
+        temperature: 0.7,
+        max_tokens: 2000 // Allow for longer responses
       }),
     });
 
     const data = await response.json();
-    console.log("📩 OpenRouter response:\n", JSON.stringify(data, null, 2)); // Log entire response
-
     const message = data?.choices?.[0]?.message?.content;
 
-    if (message) {
-      res.json({
-  choices: [
-    {
-      message: {
-        content: message
-      }
+    if (!message) {
+      return res.status(500).json({ error: "No questions generated" });
     }
-  ]
-});
 
-    } else {
-      console.error("⚠️ No content in OpenRouter response:", data);
-      res.status(500).json({ error: "No content returned from OpenRouter." });
-    }
+    res.json({ content: message });
   } catch (error) {
-    console.error("❌ Error contacting OpenRouter:", error);
-    res.status(500).json({ error: "Failed to generate questions from OpenRouter." });
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failed to generate questions" });
   }
 });
 
 app.listen(port, () => {
-  console.log(`✅ Server running at http://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
 });

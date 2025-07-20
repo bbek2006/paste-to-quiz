@@ -3,20 +3,21 @@ document.addEventListener("DOMContentLoaded", function () {
   const outputDiv = document.getElementById("quizOutput");
   const generateBtn = document.getElementById("generateBtn");
 
-  if (!textArea || !outputDiv || !generateBtn) {
-    console.error("Missing HTML elements");
-    return;
-  }
-
   generateBtn.addEventListener("click", async function () {
     const text = textArea.value.trim();
-
+    
     if (!text) {
-      outputDiv.textContent = "Please enter some text first";
+      outputDiv.textContent = "Please paste your lecture content first";
       return;
     }
 
-    outputDiv.textContent = "Generating questions...";
+    outputDiv.innerHTML = `
+      <div class='loading'>
+        Analyzing content and generating comprehensive questions...
+        <div class='spinner'></div>
+        <div class='loading-note'>This may take longer for larger texts</div>
+      </div>`;
+    generateBtn.disabled = true;
 
     try {
       const response = await fetch("https://paste-to-quiz.onrender.com/generate-mcq", {
@@ -27,18 +28,32 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify({ text })
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || `Server responded with status ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Server error");
       }
 
-      const questions = data.content; // 🔧 matches backend’s response
-      outputDiv.innerHTML = `<pre>${questions}</pre>`;
+      const data = await response.json();
+      
+      // Format questions with proper spacing and numbering
+      let formattedQuestions = data.content
+        .replace(/\n\n+/g, '\n\n') // Remove extra blank lines
+        .replace(/\n/g, '<br>')    // Convert single newlines to breaks
+        .replace(/(Q\d+\.)/g, '<br><strong>$1</strong>'); // Bold question numbers
 
+      outputDiv.innerHTML = `
+        <div class="questions-header">Generated ${(formattedQuestions.match(/Q\d+\./g) || []).length} questions:</div>
+        <div class="questions">${formattedQuestions}</div>`;
+      
     } catch (error) {
-      console.error("❌ Error:", error);
-      outputDiv.textContent = `Error: ${error.message}`;
+      outputDiv.innerHTML = `
+        <div class="error">
+          <strong>Error:</strong> ${error.message}<br>
+          Please try again with a different text
+        </div>`;
+      console.error("Error:", error);
+    } finally {
+      generateBtn.disabled = false;
     }
   });
 });
