@@ -1,12 +1,11 @@
 // server.js
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const fetch = require("node-fetch");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import bodyParser from "body-parser";
+import fetch from "node-fetch";
 
-
-// Load environment variables from .env file
+// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -14,12 +13,13 @@ const port = process.env.PORT || 3000;
 const apiKey = process.env.OPENROUTER_API_KEY;
 
 if (!apiKey) {
-  console.error("❌ Missing OpenRouter API Key. Add it to .env");
+  console.error("❌ Missing OpenRouter API Key. Add it in Render's Environment tab.");
   process.exit(1);
 }
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static("public")); // 📦 serve frontend
 
 app.post("/generate-mcq", async (req, res) => {
   const userText = req.body.text;
@@ -32,7 +32,7 @@ Each question must have:
 - 1 question
 - 4 options (a, b, c, d)
 - 1 correct answer labeled clearly.
-Format it like:
+Format:
 Q1. Question?
 a) Option 1
 b) Option 2
@@ -50,9 +50,9 @@ Answer: b`,
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://paste-to-quiz.onrender.com", // update to your domain on deploy
+        "HTTP-Referer": "https://paste-to-quiz.onrender.com", // ✅ Must match your backend
         "X-Title": "paste-to-quiz",
       },
       body: JSON.stringify({
@@ -62,20 +62,19 @@ Answer: b`,
     });
 
     const data = await response.json();
-
     const message = data?.choices?.[0]?.message?.content;
 
     if (message) {
       res.json({ content: message });
     } else {
-      res.status(500).json({ error: "No content returned from LLM." });
+      res.status(500).json({ error: "No content returned from OpenRouter." });
     }
   } catch (error) {
-    console.error("❌ API Request Error:", error);
-    res.status(500).json({ error: "Something went wrong while generating questions." });
+    console.error("❌ Error contacting OpenRouter:", error);
+    res.status(500).json({ error: "Failed to generate questions from OpenRouter." });
   }
 });
 
 app.listen(port, () => {
-  console.log(`✅ Server is running at http://localhost:${port}`);
+  console.log(`✅ Server running at http://localhost:${port}`);
 });
