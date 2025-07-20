@@ -1,59 +1,39 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const textArea = document.getElementById("lectureText");
-  const outputDiv = document.getElementById("quizOutput");
-  const generateBtn = document.getElementById("generateBtn");
+document.getElementById('generateBtn').addEventListener('click', async () => {
+  const text = document.getElementById('lectureText').value.trim();
+  const outputDiv = document.getElementById('quizOutput');
+  
+  if (!text) {
+    outputDiv.textContent = 'Please enter some text first';
+    return;
+  }
 
-  generateBtn.addEventListener("click", async function () {
-    const text = textArea.value.trim();
-    
-    if (!text) {
-      outputDiv.textContent = "Please paste your lecture content first";
-      return;
+  outputDiv.innerHTML = '<div class="loading">Generating questions...</div>';
+
+  try {
+    const response = await fetch('https://paste-to-quiz.onrender.com/generate-mcq', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ text })
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || 'Invalid response from server');
     }
 
     outputDiv.innerHTML = `
-      <div class='loading'>
-        Analyzing content and generating comprehensive questions...
-        <div class='spinner'></div>
-        <div class='loading-note'>This may take longer for larger texts</div>
-      </div>`;
-    generateBtn.disabled = true;
+      <div class="success">Questions generated successfully!</div>
+      <div class="questions">${data.questions.replace(/\n/g, '<br>')}</div>
+    `;
 
-    try {
-      const response = await fetch("https://paste-to-quiz.onrender.com/generate-mcq", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ text })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Server error");
-      }
-
-      const data = await response.json();
-      
-      // Format questions with proper spacing and numbering
-      let formattedQuestions = data.content
-        .replace(/\n\n+/g, '\n\n') // Remove extra blank lines
-        .replace(/\n/g, '<br>')    // Convert single newlines to breaks
-        .replace(/(Q\d+\.)/g, '<br><strong>$1</strong>'); // Bold question numbers
-
-      outputDiv.innerHTML = `
-        <div class="questions-header">Generated ${(formattedQuestions.match(/Q\d+\./g) || []).length} questions:</div>
-        <div class="questions">${formattedQuestions}</div>`;
-      
-    } catch (error) {
-      outputDiv.innerHTML = `
-        <div class="error">
-          <strong>Error:</strong> ${error.message}<br>
-          Please try again with a different text
-        </div>`;
-      console.error("Error:", error);
-    } finally {
-      generateBtn.disabled = false;
-    }
-  });
+  } catch (error) {
+    outputDiv.innerHTML = `
+      <div class="error">Error: ${error.message}</div>
+      <div class="retry">Please try again</div>
+    `;
+    console.error('Error:', error);
+  }
 });
