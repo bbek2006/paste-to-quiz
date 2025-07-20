@@ -52,7 +52,7 @@ Answer: b`,
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:3000", // update to your domain on deploy
+        "HTTP-Referer": "https://paste-to-quiz.onrender.com", // update to your domain on deploy
         "X-Title": "paste-to-quiz",
       },
       body: JSON.stringify({
