@@ -1,55 +1,44 @@
-document.addEventListener("DOMContentLoaded", function() {
-  // Wait until DOM is fully loaded
-  setTimeout(function() {
-    const textArea = document.getElementById("lectureText");
-    const outputDiv = document.getElementById("quizOutput");
-    const generateBtn = document.getElementById("generateBtn");
+document.addEventListener("DOMContentLoaded", function () {
+  const textArea = document.getElementById("lectureText");
+  const outputDiv = document.getElementById("quizOutput");
+  const generateBtn = document.getElementById("generateBtn");
 
-    // Double-check elements exist
-    if (!textArea || !outputDiv || !generateBtn) {
-      console.error("Critical Error: Missing HTML elements");
-      if (!outputDiv) {
-        document.body.innerHTML += '<div id="error-message" style="color:red">Error: Could not find output div</div>';
-      }
+  if (!textArea || !outputDiv || !generateBtn) {
+    console.error("Missing HTML elements");
+    return;
+  }
+
+  generateBtn.addEventListener("click", async function () {
+    const text = textArea.value.trim();
+
+    if (!text) {
+      outputDiv.textContent = "Please enter some text first";
       return;
     }
 
-    generateBtn.addEventListener("click", async function() {
-      try {
-        const text = textArea.value.trim();
-        
-        if (!text) {
-          outputDiv.textContent = "Please enter some text first";
-          return;
-        }
+    outputDiv.textContent = "Generating questions...";
 
-        outputDiv.textContent = "Generating questions...";
+    try {
+      const response = await fetch("https://paste-to-quiz.onrender.com/generate-mcq", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
+      });
 
-        const response = await fetch("https://paste-to-quiz.onrender.com/generate-mcq", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text })
-        });
+      const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(`Server responded with status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("✅ Full API response:", data);
-
-        const questions = data.content;
-        if (!questions) {
-          throw new Error("No questions returned from server");
-        }
-
-        outputDiv.innerHTML = `<pre>${questions}</pre>`;
-
-      } catch (error) {
-        console.error("❌ Error:", error);
-        const errorDiv = document.getElementById("quizOutput") || document.body;
-        errorDiv.textContent = `Error: ${error.message}`;
+      if (!response.ok) {
+        throw new Error(data.error || `Server responded with status ${response.status}`);
       }
-    });
-  }, 100); // Small delay to ensure DOM is ready
+
+      const questions = data.content; // 🔧 matches backend’s response
+      outputDiv.innerHTML = `<pre>${questions}</pre>`;
+
+    } catch (error) {
+      console.error("❌ Error:", error);
+      outputDiv.textContent = `Error: ${error.message}`;
+    }
+  });
 });
