@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         outputDiv.textContent = "Generating questions...";
 
-        const response = await fetch("http://localhost:3000/generate-mcq", {
+        const response = await fetch("https://paste-to-quiz.onrender.com/generate-mcq", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text })
