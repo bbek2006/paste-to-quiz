@@ -47,12 +47,13 @@ Answer: b`,
   ];
 
   try {
+    console.log("📤 Sending request to OpenRouter...");
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://paste-to-quiz.onrender.com", // ✅ Must match your backend
+        "HTTP-Referer": "https://paste-to-quiz.onrender.com",
         "X-Title": "paste-to-quiz",
       },
       body: JSON.stringify({
@@ -62,11 +63,14 @@ Answer: b`,
     });
 
     const data = await response.json();
+    console.log("📩 OpenRouter response:\n", JSON.stringify(data, null, 2)); // Log entire response
+
     const message = data?.choices?.[0]?.message?.content;
 
     if (message) {
       res.json({ content: message });
     } else {
+      console.error("⚠️ No content in OpenRouter response:", data);
       res.status(500).json({ error: "No content returned from OpenRouter." });
     }
   } catch (error) {
