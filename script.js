@@ -1,39 +1,63 @@
-document.getElementById('generateBtn').addEventListener('click', async () => {
-  const text = document.getElementById('lectureText').value.trim();
-  const outputDiv = document.getElementById('quizOutput');
-  
-  if (!text) {
-    outputDiv.textContent = 'Please enter some text first';
-    return;
-  }
+document.addEventListener("DOMContentLoaded", function () {
+  const textArea = document.getElementById("lectureText");
+  const outputDiv = document.getElementById("quizOutput");
+  const generateBtn = document.getElementById("generateBtn");
 
-  outputDiv.innerHTML = '<div class="loading">Generating questions...</div>';
-
-  try {
-    const response = await fetch('https://paste-to-quiz.onrender.com/generate-mcq', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ text })
-    });
-
-    const data = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.error || 'Invalid response from server');
+  generateBtn.addEventListener("click", async function () {
+    const text = textArea.value.trim();
+    
+    if (!text) {
+      outputDiv.innerHTML = `
+        <div class="question-block" style="color: #ff6b6b">
+          Please paste some lecture content first
+        </div>`;
+      return;
     }
 
     outputDiv.innerHTML = `
-      <div class="success">Questions generated successfully!</div>
-      <div class="questions">${data.questions.replace(/\n/g, '<br>')}</div>
-    `;
+      <div class="question-block loading">
+        Generating questions...
+        <div class="spinner"></div>
+      </div>`;
+    
+    generateBtn.disabled = true;
+    generateBtn.style.opacity = "0.7";
 
-  } catch (error) {
-    outputDiv.innerHTML = `
-      <div class="error">Error: ${error.message}</div>
-      <div class="retry">Please try again</div>
-    `;
-    console.error('Error:', error);
-  }
+    try {
+      const response = await fetch("https://paste-to-quiz.onrender.com/generate-mcq", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
+      });
+
+      const data = await response.json();
+
+      if (!data.success || !data.questions) {
+        throw new Error(data.error || "Failed to generate questions");
+      }
+
+      // Format questions with proper styling
+      const questionsHTML = data.questions
+        .split('\n\n')
+        .map(q => `
+          <div class="question-block">
+            ${q.replace(/\n/g, '<br>')}
+          </div>`
+        ).join('');
+
+      outputDiv.innerHTML = questionsHTML;
+
+    } catch (error) {
+      outputDiv.innerHTML = `
+        <div class="question-block" style="color: #ff6b6b">
+          Error: ${error.message}
+        </div>`;
+      console.error("Error:", error);
+    } finally {
+      generateBtn.disabled = false;
+      generateBtn.style.opacity = "1";
+    }
+  });
 });
