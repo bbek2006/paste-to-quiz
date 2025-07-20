@@ -68,7 +68,16 @@ Answer: b`,
     const message = data?.choices?.[0]?.message?.content;
 
     if (message) {
-      res.json({ content: message });
+      res.json({
+  choices: [
+    {
+      message: {
+        content: message
+      }
+    }
+  ]
+});
+
     } else {
       console.error("⚠️ No content in OpenRouter response:", data);
       res.status(500).json({ error: "No content returned from OpenRouter." });
