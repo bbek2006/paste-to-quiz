@@ -1,0 +1,126 @@
+/* ===== General Body Styling ===== */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
+  color: #ffffff;
+}
+
+/* ===== Container (Glass Effect) ===== */
+.container {
+  max-width: 720px;
+  margin: 40px auto;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: fadeInScale 0.5s ease-in-out;
+}
+
+
+/* ===== Textarea Styling ===== */
+textarea {
+  width: 100%;
+  height: 200px;
+  padding: 16px;
+  font-size: 15px;
+  background: #1e1e2f;
+  color: #eaeaea;
+  border: none;
+  border-radius: 12px;
+  resize: none;
+  overflow-y: scroll;
+  margin-bottom: 20px;
+}
+
+/* ===== Scrollbar ===== */
+textarea::-webkit-scrollbar {
+  width: 8px;
+}
+textarea::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 10px;
+}
+
+/* ===== Generate Button (Glassmorphism) ===== */
+button {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  display: block;
+  margin: 0 auto;
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== MCQ Question Block ===== */
+.question-block {
+  background: rgba(255, 255, 255, 0.07);
+  padding: 18px;
+  border-radius: 12px;
+  margin-top: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: fadeInScale 0.5s ease-in-out;
+}
+
+/* ===== Options ===== */
+.option {
+  margin: 8px 0;
+  padding: 10px 14px;
+  background-color: #2e2e4e;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.option:hover {
+  background-color: #413c68;
+}
+
+.option.correct {
+  background-color: #3ba55d;
+}
+
+.option.wrong {
+  background-color: #e74c3c;
+}
+
+/* ===== Animations ===== */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
